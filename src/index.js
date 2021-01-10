@@ -18,8 +18,15 @@ const onWaitClick = () => {
     };
 };
 
+const getFormattedStopWatch = stopWatch => stopWatch ? {
+    hr: stopWatch.hr >= 10 ? stopWatch.hr : '0' + stopWatch.hr,
+    min: stopWatch.min >= 10 ? stopWatch.min : '0' + stopWatch.min,
+    sec: stopWatch.sec >= 10 ? stopWatch.sec : '0' + stopWatch.sec,
+    ms: stopWatch.ms >= 10 ? stopWatch.ms : '0' + stopWatch.ms,
+} : {};
+
 const App = () => {
-    
+
     const [stopwatchState, setStopwatchState] = useState();
     useEffect(() => {
         const stopwatchSub = stopwatch$.subscribe(setStopwatchState);
@@ -28,8 +35,12 @@ const App = () => {
         };
     }, []);
 
+    const formattedStopWatch = getFormattedStopWatch(stopwatchState);
+
     return <>
-        <div className="display">{JSON.stringify(stopwatchState)}</div>
+        {stopwatchState &&
+            <div className="display">{`${formattedStopWatch.hr}:${formattedStopWatch.min}:${formattedStopWatch.sec}:${formattedStopWatch.ms}`}
+            </div>}
         <button className="start" onClick={() => actions$.next(constants.START)}>
             Start
       </button>
