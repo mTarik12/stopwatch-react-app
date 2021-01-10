@@ -32,7 +32,7 @@ const reset$ = actions$.pipe(
     mapTo(constants.RESET)
 );
 
-const interval$ = interval(1000);
+const interval$ = interval(1000).pipe(mapTo(1));
 
 const COUNTDOWN_INIT_VALUE = { sec: 0, min: 0 };
 const stopwatch$ = merge(start$, wait$, stop$, reset$)
