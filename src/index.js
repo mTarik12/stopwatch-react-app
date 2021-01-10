@@ -11,6 +11,7 @@ import {
 } from "rxjs/operators";
 import "./styles.css";
 import constants from './constants';
+import stopWatchCore from './stopWatchCore';
 
 const actions$ = new Subject();
 const start$ = actions$.pipe(
@@ -32,9 +33,9 @@ const reset$ = actions$.pipe(
     mapTo(constants.RESET)
 );
 
-const interval$ = interval(1000).pipe(mapTo(1));
+const interval$ = interval(10).pipe(mapTo(1));
 
-const COUNTDOWN_INIT_VALUE = { sec: 0, min: 0 };
+const COUNTDOWN_INIT_VALUE = { hr: 0, min: 0, sec: 0, ms: 0 };
 const stopwatch$ = merge(start$, wait$, stop$, reset$)
     .pipe(
         startWith(constants.INIT),
@@ -52,19 +53,26 @@ const stopwatch$ = merge(start$, wait$, stop$, reset$)
         scan(
             (acc, curr) => {
                 if (!curr) {
-                    return { sec: 0, min: 0 };
+                    return { hr: 0, min: 0, sec: 0, ms: 0 };
                 };
-
-                if (acc.sec === 9) {
-                    return { sec: 0, min: ++acc.min };
-                } else {
-                    return { ...acc, sec: ++acc.sec };
-                };
+                return { ...stopWatchCore(acc) };
             },
             COUNTDOWN_INIT_VALUE
-        )
-    )
+        ))
     .pipe(share());
+
+let clickedOnce = false;
+function onWaitClick() {
+    if (clickedOnce) {
+        actions$.next(constants.WAIT);
+        clickedOnce = false;
+    } else {
+        clickedOnce = true;
+        setTimeout(() => {
+            clickedOnce = false;
+        }, constants.DOUBLE_CLICK_TIMEOUT);
+    };
+};
 
 function App() {
     const [stopwatchState, setStopwatchState] = useState();
@@ -75,21 +83,7 @@ function App() {
         };
     }, []);
 
-    let clickedOnce = false;
-    function onWaitClick() {
-        if (clickedOnce) {
-            actions$.next(constants.WAIT);
-            clickedOnce = false;
-        } else {
-            clickedOnce = true;
-            setTimeout(() => {
-                clickedOnce = false;
-            }, constants.DOUBLE_CLICK_TIMEOUT);
-        }
-    }
-
     return <>
-        {/* //TODO make stopwatch format user friendly */}
         <div className="display">{JSON.stringify(stopwatchState)}</div>
         <button className="start" onClick={() => actions$.next(constants.START)}>
             Start
